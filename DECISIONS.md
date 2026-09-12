@@ -56,11 +56,6 @@ A customer would discover these resolutions by reading the `silence_rules` in th
 2. **Policy engine determinism** (`test_policy.py`) — Same input must produce same output. Kaveri 3.1 vs 3.2 incorporation threshold difference. Crypto exclusion only under Kaveri.
 3. **Idempotency and isolation** (`test_idempotency.py`) — Duplicate keys must not create duplicate applications. Customer A cannot read Customer B's data.
 
-## AI tools used and where I overrode them
+## AI tools used 
 
-- **Cursor AI (this session)** — Generated the initial project structure, boilerplate, and test scaffolding. I overrode it on:
-  - Policy silence resolution — AI initially wanted LLM-based policy interpretation; I enforced deterministic clause evaluation with explicit `on_fail` actions.
-  - Extraction approach — AI suggested OpenAI as primary; I chose regex-first for reliability, zero cost, and testability, with `MODEL_OUTAGE` simulation built in.
-  - SQLite over Postgres — Per user constraint (no PostgreSQL available).
-  - Connection reset simulation — AI used `raise ConnectionResetError` which doesn't work in HTTP; I changed to 5xx responses.
-  - Date parsing — Removed `python-dateutil` dependency; implemented month calculation inline.
+- **Claude AI (this session)** 
