@@ -1,0 +1,50 @@
+services:
+  mock-upstream:
+    build: ./mock-upstream
+    ports:
+      - "8001:8001"
+    environment:
+      - HARD_FAILURE_RATE=${HARD_FAILURE_RATE:-0.30}
+      - HANG_RATE=${HANG_RATE:-0.10}
+      - RATE_LIMIT_RATE=${RATE_LIMIT_RATE:-0.05}
+      - HANG_SECONDS=${HANG_SECONDS:-20}
+      - RETRY_AFTER_SECONDS=${RETRY_AFTER_SECONDS:-5}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/deepvue.db
+      - MOCK_UPSTREAM_URL=http://mock-upstream:8001
+      - MODEL_OUTAGE=${MODEL_OUTAGE:-false}
+      - KAVERI_POLICY_VERSION=${KAVERI_POLICY_VERSION:-3.1}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - UPSTREAM_MAX_RETRIES=${UPSTREAM_MAX_RETRIES:-3}
+      - UPSTREAM_TIMEOUT_SECONDS=${UPSTREAM_TIMEOUT_SECONDS:-10}
+      - PROCESSING_TIMEOUT_SECONDS=${PROCESSING_TIMEOUT_SECONDS:-120}
+    volumes:
+      - api-data:/app/data
+    depends_on:
+      - mock-upstream
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  api-data:
